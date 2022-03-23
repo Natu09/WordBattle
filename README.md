@@ -5,11 +5,7 @@ SENG 513 group project
 ## Getting started 
 
 ```
-npm install express socket.io moment
-```
-
-```
-npm install -D nodemon
+npm install 
 ```
 
 To run the application
