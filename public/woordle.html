@@ -27,7 +27,13 @@
           <h3><i class="fas fa-comments"></i> Room Code:</h3>
           <h2 id="room-coded"></h2>
           <h3><i class="fas fa-users"></i> Users</h3>
-          <ul id="users"></ul>
+          <ul id="users">
+            <li id = "example">User 1</li>
+            <li id = "example1">User 2</li>
+            <li id = "example2">User 3</li>
+            <li id = "example3">User 4</li>
+            <li id = "example4">User 5</li>
+          </ul>
       </div>
 
       <div class="col-9">
@@ -93,6 +99,10 @@
       const keys = document.querySelectorAll(".keyboard-row button");
       var index = 1;
       var current_word = "";
+      var users = document.getElementById('users')
+      var items = users.getElementsByTagName("li");
+
+
 
       //for-loop based on youtube video, I did the logic myself tho
       //so that it's not super similar to the youtube video lol
@@ -136,6 +146,7 @@
       //createSquares() taken from youtube video
       document.addEventListener("DOMContentLoaded", () => {
         createSquares();
+        createSquaresSmall();
         function createSquares() {
           const gameBoard = document.getElementById("board");
           for (let index = 0; index < 30; index++) {
@@ -143,6 +154,20 @@
             square.classList.add("square");
             square.setAttribute("id", index + 1);
             gameBoard.appendChild(square);
+          }
+        }
+        function createSquaresSmall() {
+          for (var i = 0; i < items.length; ++i) {
+            let grid = document.createElement("div");
+            grid.classList.add('board_small');
+            for (var j = 0; j < 5; ++j) {
+
+              let square = document.createElement("div");
+              square.classList.add("square_small");
+              //square.setAttribute("id", index + 1);
+              grid.appendChild(square);
+              items[i].appendChild(grid);
+            }
           }
         }
       });
