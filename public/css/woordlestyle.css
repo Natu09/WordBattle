@@ -92,3 +92,17 @@ header {
 .spacer-half {
   flex: 0.5;
 }
+
+.square {
+  border: 2px solid rgb(58, 58, 60);
+  min-width: 60px;
+  min-height: 60px;
+  font-size: 30px;
+  font-weight: bold;
+  color: gainsboro;
+  text-transform: uppercase;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -39,7 +39,6 @@
           <div id="board-container">
             <div id="board"></div>
           </div>
-  
           <div id="keyboard-container">
             <div class="keyboard-row">
               <button data-key="q">q</button>
@@ -90,5 +89,63 @@
     ></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/main.js"></script>
+    <script>
+      const keys = document.querySelectorAll(".keyboard-row button");
+      var index = 1;
+      var current_word = "";
+
+      //for-loop based on youtube video, I did the logic myself tho
+      //so that it's not super similar to the youtube video lol
+      //may want to delegate some of the logic to helper functions lol
+      for (let i = 0; i < keys.length; i++) {
+        keys[i].onclick = ({ target }) => {
+          console.log(current_word);
+          const letter = target.getAttribute("data-key");
+          if (letter === "enter") {
+            if(current_word.length<5){
+              alert("Word isn't 5 letters");
+            }else{
+              sendWord();
+              current_word = "";
+            }
+            return;
+          }
+          else if (letter === "del") {
+            current_word = current_word.slice(0, -1);
+            index--;
+            const currentSquare = document.getElementById(index);
+            currentSquare.textContent = '';
+            return;
+          }
+          else if(current_word.length>=5){
+            alert("At max word length"+current_word.length);
+          }
+          else{
+            const currentSquare = document.getElementById(index);
+            currentSquare.textContent = letter;
+            current_word = current_word.concat(letter);
+            index++;
+          }
+        };
+      }
+      //where word will be sent to server
+      function sendWord() {
+          console.log("sending: "+current_word);
+      }
+
+      //createSquares() taken from youtube video
+      document.addEventListener("DOMContentLoaded", () => {
+        createSquares();
+        function createSquares() {
+          const gameBoard = document.getElementById("board");
+          for (let index = 0; index < 30; index++) {
+            let square = document.createElement("div");
+            square.classList.add("square");
+            square.setAttribute("id", index + 1);
+            gameBoard.appendChild(square);
+          }
+        }
+      });
+    </script>
   </body>
 </html>
