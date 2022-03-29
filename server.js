@@ -18,9 +18,24 @@ var current_word = "crane";
 io.on('connection', (socket) => {
     socket.on('submit guess', (guess) => {
         var feedback = check_answer(guess);
+        if(check_win(feedback)){
+            /*To-Do:
+            -send winner information to clients
+            -tell clients to clear board
+            -switch to new word (update "current_word")
+             */
+        }
         socket.emit('feedback', feedback);
     });
 });
+
+function check_win(guess){
+    if(guess.includes("yellow") || guess.includes("grey")){
+        return false;
+    }else{
+        return true;
+    }
+}
 
 function check_answer(guess){
     var tileArray = [];
