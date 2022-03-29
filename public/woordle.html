@@ -96,6 +96,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/main.js"></script>
     <script>
+      var socket = io();
       const keys = document.querySelectorAll(".keyboard-row button");
       var index = 1;
       var current_word = "";
@@ -140,7 +141,7 @@
       }
       //where word will be sent to server
       function sendWord() {
-          console.log("sending: "+current_word);
+        socket.emit('submit guess', current_word);
       }
 
       //createSquares() taken from youtube video
@@ -169,6 +170,17 @@
               items[i].appendChild(grid);
             }
           }
+        }
+      });
+
+      socket.on('feedback', function(tiles) {
+        var tileIndex = index-5;
+        counter=0;
+        for(var j = tileIndex; j < tileIndex+5; ++j){
+          const current_square = document.getElementById(j);
+          console.log(tiles);
+          current_square.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+          counter++;
         }
       });
     </script>
