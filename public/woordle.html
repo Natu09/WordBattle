@@ -28,11 +28,6 @@
           <h2 id="room-coded"></h2>
           <h3><i class="fas fa-users"></i> Users</h3>
           <ul id="users">
-            <li id = "example">User 1</li>
-            <li id = "example1">User 2</li>
-            <li id = "example2">User 3</li>
-            <li id = "example3">User 4</li>
-            <li id = "example4">User 5</li>
           </ul>
       </div>
 
@@ -100,10 +95,17 @@
       const keys = document.querySelectorAll(".keyboard-row button");
       var index = 1;
       var current_word = "";
-      var users = document.getElementById('users')
-      var items = users.getElementsByTagName("li");
+      var userList = document.getElementById('users')
+      var items = userList.getElementsByTagName("li");
 
+      // will switch to a better method of joining the room later
+      const { username, room } = Qs.parse(location.search, {
+        ignoreQueryPrefix: true,
+      });
 
+      // Join this user to the chatroom
+      socket.emit('join', ({ username, room }));
+      
 
       //for-loop based on youtube video, I did the logic myself tho
       //so that it's not super similar to the youtube video lol
@@ -183,6 +185,16 @@
           counter++;
         }
       });
+
+      // Display the list of users sent from the server
+      socket.on('users', ({ users }) => {
+        displayUsers(users);
+      });
+
+      // Displays list of active users
+      function displayUsers(users) {
+        userList.innerHTML = `${users.map(user => `<li id = "example">${user.username}</li>`).join('')}`;
+      }
     </script>
   </body>
 </html>
