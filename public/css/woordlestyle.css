@@ -33,10 +33,6 @@ header {
     "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
 }
 
-.game-sidebar {
-  color: #ffffff;
-}
-
 #board-container {
   display: flex;
   justify-content: center;

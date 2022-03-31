@@ -1,40 +1,57 @@
-// Everything regarding user handling will be in this file 
-
-// list of users
+// helper file for users
 const users = [];
 
-function joinRoom(id, username, room) {
-    const user = {id, username, room};
+const userSet = new Set();
 
+randomNames = [
+    "Cory", "Nichols",
+    "Athena", "Mcknight",
+    "Reese", "Davidson",
+    "Caitlyn", "Reiner",
+    "Braedon", "Nunez",
+    "Demarcus", "Richmond",
+    "Clayton", "Stuart",
+    "Annabel", "Salas",
+    "Colby", "Blankenship",
+    "Katelynn", "Lynn",
+    "Everett", "Lara",
+    "Kamora", "Watson"
+  ]
+
+  // Join user to game room
+function userJoin(id, username, room) {
+    const user = { id, username, room };
+  
     users.push(user);
-
+    userSet.add(username); // add the name to the taken username set
+  
     return user;
-}
-
+  }
+  
+// Get current user by it's id
 function getCurrentUser(id) {
-    // Find and return the user with the matching id (if that user exists)
-    return users.find(user => user.id == id);
+    return users.find(user => user.id === id);
 }
 
-function leaveRoom(id) {
-    // Find the index of the user in users
-    const index = users.findIndex(user => user.id == id);
+// get user who leaves game room
+function userLeave(id) {
+    const index = users.findIndex(user => user.id === id);
 
-    // If the user exists in the list of users
     if (index !== -1) {
-        // Remove the users from the list and return the removed user
+        const user = users[index]
+        userSet.delete(user.username)
         return users.splice(index, 1)[0];
     }
 }
 
-// Get a list of all current users
-function getUsers(room) {
+// Get room users
+function getRoomUsers(room) {
     return users.filter(user => user.room === room);
 }
 
 module.exports = {
-    joinRoom,
-    getCurrentUser,
-    leaveRoom,
-    getUsers
+userJoin,
+getCurrentUser,
+userLeave,
+getRoomUsers
 };

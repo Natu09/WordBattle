@@ -1,19 +1,33 @@
-var socket = io();
+const roomName = document.getElementById('room-name');
+const userList = document.getElementById('users');
 const keys = document.querySelectorAll(".keyboard-row button");
-var index = 1;
-var current_word = "";
-var userList = document.getElementById('users')
-var items = userList.getElementsByTagName("li");
+const items = userList.getElementsByTagName("li");
 
-// will switch to a better method of joining the room later
-const { username, room } = Qs.parse(location.search, {
-  ignoreQueryPrefix: true,
+// Get username and room from URL
+let { username, room } = Qs.parse(location.search, {
+    ignoreQueryPrefix: true,
 });
 
-// Join this user to the chatroom
-socket.emit('join', ({ username, room }));
+const socket = io();
+
+// Join chatroom
+socket.emit('joinRoom', { username, room });
+
+// Get room and users
+socket.on('roomUsers', ({ room, users }) => {
+    outputRoomName(room);
+    outputUsers(users);
+  });
+
+// Message from server
+socket.on('message', (message) => {
+    console.log(message);
+});
 
 
+
+let index = 1;
+let current_word = "";
 //for-loop based on youtube video, I did the logic myself tho
 //so that it's not super similar to the youtube video lol
 //may want to delegate some of the logic to helper functions lol
@@ -48,10 +62,22 @@ for (let i = 0; i < keys.length; i++) {
     }
   };
 }
+
 //where word will be sent to server
 function sendWord() {
   socket.emit('submit guess', current_word);
 }
+
+socket.on('feedback', function(tiles) {
+    var tileIndex = index-5;
+    counter=0;
+    for(var j = tileIndex; j < tileIndex+5; ++j){
+      const current_square = document.getElementById(j);
+      console.log(tiles);
+      current_square.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+      counter++;
+    }
+  });
 
 //createSquares() taken from youtube video
 document.addEventListener("DOMContentLoaded", () => {
@@ -82,23 +108,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-socket.on('feedback', function(tiles) {
-  var tileIndex = index-5;
-  counter=0;
-  for(var j = tileIndex; j < tileIndex+5; ++j){
-    const current_square = document.getElementById(j);
-    console.log(tiles);
-    current_square.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
-    counter++;
-  }
-});
-
-// Display the list of users sent from the server
-socket.on('users', ({ users }) => {
-  displayUsers(users);
-});
-
-// Displays list of active users
-function displayUsers(users) {
-  userList.innerHTML = `${users.map(user => `<li id = "example">${user.username}</li>`).join('')}`;
+// Add room name to DOM
+function outputRoomName(room) {
+    roomName.innerText = room;
+}
+  
+// Add users to DOM
+function outputUsers(users) {
+    userList.innerHTML = '';
+    users.forEach((user) => {
+        const li = document.createElement('li');
+        li.innerText = user.username;
+        userList.appendChild(li);
+    });
 }
