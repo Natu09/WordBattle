@@ -17,9 +17,10 @@ socket.emit('joinRoom', { username, room });
 socket.on('roomUsers', ({ room, users }) => {
     outputRoomName(room);
     outputUsers(users);
-  });
+});
 
 // Message from server
+// we can maybe add a alert or notification that a user has joined the room
 socket.on('message', (message) => {
     console.log(message);
 });
@@ -34,6 +35,8 @@ let current_word = "";
 for (let i = 0; i < keys.length; i++) {
   keys[i].onclick = ({ target }) => {
     console.log(current_word);
+    const bigSquareID = `bigSquare${index}`
+    const smallSquareID = `bigSquare${index}`
     const letter = target.getAttribute("data-key");
     if (letter === "enter") {
       if(current_word.length<5){
@@ -47,15 +50,19 @@ for (let i = 0; i < keys.length; i++) {
     else if (letter === "del") {
       current_word = current_word.slice(0, -1);
       index--;
-      const currentSquare = document.getElementById(index);
+      
+      const currentSquare = document.getElementById(bigSquareID);
       currentSquare.textContent = '';
+
+      const smallSquare = document.getElementById(smallSquareID);
+      smallSquare.textContent = '';
       return;
     }
     else if(current_word.length>=5){
       alert("At max word length"+current_word.length);
     }
     else{
-      const currentSquare = document.getElementById(index);
+      const currentSquare = document.getElementById(bigSquareID);
       currentSquare.textContent = letter;
       current_word = current_word.concat(letter);
       index++;
@@ -65,16 +72,21 @@ for (let i = 0; i < keys.length; i++) {
 
 //where word will be sent to server
 function sendWord() {
-  socket.emit('submit guess', current_word);
+  socket.emit('wordGuess', current_word);
 }
 
-socket.on('feedback', function(tiles) {
+socket.on('feedback', tiles => {
+    console.log(tiles);
     var tileIndex = index-5;
     counter=0;
     for(var j = tileIndex; j < tileIndex+5; ++j){
-      const current_square = document.getElementById(j);
-      console.log(tiles);
+      const id = `bigSquare${j}`
+      const current_square = document.getElementById(id);
       current_square.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+
+      const id2 = `smallSquare${j}`
+      const current_square2 = document.getElementById(id2);
+      current_square2.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
       counter++;
     }
   });
@@ -82,31 +94,32 @@ socket.on('feedback', function(tiles) {
 //createSquares() taken from youtube video
 document.addEventListener("DOMContentLoaded", () => {
   createSquares();
-  createSquaresSmall();
-  function createSquares() {
-    const gameBoard = document.getElementById("board");
-    for (let index = 0; index < 30; index++) {
-      let square = document.createElement("div");
-      square.classList.add("square");
-      square.setAttribute("id", index + 1);
-      gameBoard.appendChild(square);
-    }
-  }
-  function createSquaresSmall() {
-    for (var i = 0; i < items.length; ++i) {
-      let grid = document.createElement("div");
-      grid.classList.add('board_small');
-      for (var j = 0; j < 5; ++j) {
-
-        let square = document.createElement("div");
-        square.classList.add("square_small");
-        //square.setAttribute("id", index + 1);
-        grid.appendChild(square);
-        items[i].appendChild(grid);
-      }
-    }
-  }
 });
+
+function createSquares() {
+  const gameBoard = document.getElementById("board");
+  for (let index = 0; index < 30; index++) {
+    let square = document.createElement("div");
+    square.classList.add("square");
+    const id = `bigSquare${index+1}`
+    square.setAttribute("id", id);
+    gameBoard.appendChild(square);
+  }
+}
+
+function createSquaresSmall() {
+  for (var i = 0; i < items.length; ++i) {
+    let grid = document.createElement("div");
+    grid.classList.add('board_small');
+    for (var j = 0; j < 5; ++j) {
+      let square = document.createElement("div");
+      square.classList.add("square_small");
+      square.setAttribute("id", `smallSquare${j}`);
+      grid.appendChild(square);
+      items[i].appendChild(grid);
+    }
+  }
+}
 
 // Add room name to DOM
 function outputRoomName(room) {
@@ -121,4 +134,5 @@ function outputUsers(users) {
         li.innerText = user.username;
         userList.appendChild(li);
     });
+    createSquaresSmall();
 }

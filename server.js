@@ -19,9 +19,9 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 // Run when a client connects 
 io.on('connection', (socket) => {
-    // checks username and color for availability 
-    // socket.on('checkValidLogin', ({ username, color }) => {
-    //     const newUser = loginCheck(username, color)
+    // checks username for availability 
+    // socket.on('checkValidLogin', ({ username, room }) => {
+    //     const newUser = loginCheck(username, room)
     //     io.emit('loginResp', newUser)
     // })
 
@@ -47,6 +47,9 @@ io.on('connection', (socket) => {
     // Listens for word guess
     socket.on('wordGuess', guess => {
         const user = getCurrentUser(socket.id)
+        console.log(user, user.room)
+        const feedback = check_answer(guess);
+        io.to(user.room).emit('feedback', feedback)
     })
 
 
@@ -59,14 +62,30 @@ io.on('connection', (socket) => {
             io.to(user.room).emit('message', `${user.username} has left the game`)
         }
 
-        // // Send user/room info to show who's online when someone leaves a room
+        // Send user/room info to show who's online when someone leaves a room
         // io.to(user.room).emit('roomUsers', {
         //     room: user.room,
         //     users: getRoomUsers(user.room)
         // });
     })
+});
 
-  });
+var current_word = "crane";
+function check_answer(guess){
+    var tileArray = [];
+    for (let i = 0; i < guess.length; i++) {
+        if(current_word.includes(guess[i])){
+            if(current_word[i]===guess[i]){
+                tileArray[i]="green";
+            }else{
+                tileArray[i]="yellow";
+            }
+        }else{
+            tileArray[i]="grey";
+        }
+    }
+    return tileArray;
+}
 
 const PORT = process.env.PORT || 3000;
 
