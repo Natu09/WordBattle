@@ -83,7 +83,7 @@ socket.on('feedback', tiles => {
       const id = `bigSquare${j}`
       const current_square = document.getElementById(id);
       current_square.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
-
+      
       const id2 = `smallSquare${j}`
       const current_square2 = document.getElementById(id2);
       current_square2.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
