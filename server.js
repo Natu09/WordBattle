@@ -13,17 +13,18 @@ app.use(express.static(path.join(__dirname, 'public')))
 var current_users=[];
 var current_word = "crane";
 
-
+let letterArray = [];
 
 io.on('connection', (socket) => {
     socket.on('submit guess', (guess) => {
         var feedback = check_answer(guess);
-        socket.emit('feedback', feedback);
+        socket.emit('feedback', feedback, letterArray);
     });
 });
 
 function check_answer(guess){
     var tileArray = [];
+    letterArray = [];
     for (let i = 0; i < guess.length; i++) {
         if(current_word.includes(guess[i])){
             if(current_word[i]===guess[i]){
@@ -32,8 +33,9 @@ function check_answer(guess){
                 tileArray[i]="yellow";
             }
         }else{
-            tileArray[i]="grey";
+            tileArray[i]="#484848";
         }
+        letterArray[i]=guess[i];
     }
     return tileArray;
 }

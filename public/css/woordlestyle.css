@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  --animate-duration: 2s;
 }
 
 html,
@@ -23,6 +24,10 @@ header {
   border-bottom: 1px solid rgb(58, 58, 60);
 }
 
+.head-container {
+  background-color: #1c1c1d;
+}
+
 .title {
   color: #ffffff;
   font-size: 2.5rem;
@@ -35,6 +40,17 @@ header {
 
 .game-sidebar {
   color: #ffffff;
+  background-color: #18181a;
+}
+
+.room-sidebar {
+  color: #ffffff;
+  background-color: #171718;
+}
+
+.title-head {
+  color: #ffffff;
+  background-color: #171718;
 }
 
 #board-container {
