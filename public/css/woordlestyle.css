@@ -33,13 +33,15 @@ a {
 }
 
 .btn {
-  cursor: pointer;
-  padding: 5px 15px;
-  background: var(--light-color);
-  color: var(--dark-color-a);
-  border: 0;
-  font-size: 17px;
+	cursor: pointer !important;
+	padding: 5px 15px !important;
+	background: var(--light-color) !important;
+	color: var(--dark-color-a) !important;
+	border: 0 !important;
+	font-size: 17px !important;
 }
+
+
 /* Chat Page */
 
 .chat-container {
@@ -185,7 +187,7 @@ a {
   min-height: 60px;
   font-size: 30px;
   font-weight: bold;
-  color: gainsboro;
+  color: black;
   text-transform: uppercase;
   display: flex;
   justify-content: center;

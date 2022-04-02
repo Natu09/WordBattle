@@ -1,7 +1,6 @@
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
 const keys = document.querySelectorAll(".keyboard-row button");
-const items = userList.getElementsByTagName("li");
 
 // Get username and room from URL
 let { username, room } = Qs.parse(location.search, {
@@ -14,9 +13,10 @@ const socket = io();
 socket.emit('joinRoom', { username, room });
 
 // Get room and users
-socket.on('roomUsers', ({ room, users }) => {
+socket.on('roomUsers', ({ currentUser, room, users }) => {
+  console.log(currentUser)
     outputRoomName(room);
-    outputUsers(users);
+    outputUsers(users, currentUser);
 });
 
 // Message from server
@@ -25,6 +25,37 @@ socket.on('message', (message) => {
     console.log(message);
 });
 
+//where word will be sent to server
+function sendWord() {
+  socket.emit('wordGuess', (current_word));
+}
+
+socket.on('feedback', ({user, tiles}) => {
+  console.log("user", user)
+  console.log("tiles", tiles)
+  var tileIndex = index-5;
+  counter=0;
+  for(var j = tileIndex; j < tileIndex+5; ++j){
+    if (user?.username === username) {
+      const bigSquare = document.getElementById(`bigSquare${j}`);
+      bigSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+    }
+    
+    let smallSquareID = counter+1 % 5
+    if (smallSquareID == 0) {
+      smallSquareID = 5
+    }  
+    console.log(smallSquareID, `${user?.username}${smallSquareID}`, 'first')
+    const smallSquare = document.getElementById(`${user?.username}${smallSquareID}`);
+    smallSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+    counter++;
+  }
+});
+
+//createSquares() taken from youtube video
+document.addEventListener("DOMContentLoaded", () => {
+  createSquares();
+});
 
 
 let index = 1;
@@ -34,9 +65,10 @@ let current_word = "";
 //may want to delegate some of the logic to helper functions lol
 for (let i = 0; i < keys.length; i++) {
   keys[i].onclick = ({ target }) => {
-    console.log(current_word);
+
+    // initialize the class IDs to reference later
     const bigSquareID = `bigSquare${index}`
-    const smallSquareID = `bigSquare${index}`
+
     const letter = target.getAttribute("data-key");
     if (letter === "enter") {
       if(current_word.length<5){
@@ -53,9 +85,6 @@ for (let i = 0; i < keys.length; i++) {
       
       const currentSquare = document.getElementById(bigSquareID);
       currentSquare.textContent = '';
-
-      const smallSquare = document.getElementById(smallSquareID);
-      smallSquare.textContent = '';
       return;
     }
     else if(current_word.length>=5){
@@ -70,54 +99,13 @@ for (let i = 0; i < keys.length; i++) {
   };
 }
 
-//where word will be sent to server
-function sendWord() {
-  socket.emit('wordGuess', current_word);
-}
-
-socket.on('feedback', tiles => {
-    console.log(tiles);
-    var tileIndex = index-5;
-    counter=0;
-    for(var j = tileIndex; j < tileIndex+5; ++j){
-      const id = `bigSquare${j}`
-      const current_square = document.getElementById(id);
-      current_square.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
-      
-      const id2 = `smallSquare${j}`
-      const current_square2 = document.getElementById(id2);
-      current_square2.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
-      counter++;
-    }
-  });
-
-//createSquares() taken from youtube video
-document.addEventListener("DOMContentLoaded", () => {
-  createSquares();
-});
-
 function createSquares() {
   const gameBoard = document.getElementById("board");
   for (let index = 0; index < 30; index++) {
-    let square = document.createElement("div");
-    square.classList.add("square");
-    const id = `bigSquare${index+1}`
-    square.setAttribute("id", id);
-    gameBoard.appendChild(square);
-  }
-}
-
-function createSquaresSmall() {
-  for (var i = 0; i < items.length; ++i) {
-    let grid = document.createElement("div");
-    grid.classList.add('board_small');
-    for (var j = 0; j < 5; ++j) {
-      let square = document.createElement("div");
-      square.classList.add("square_small");
-      square.setAttribute("id", `smallSquare${j}`);
-      grid.appendChild(square);
-      items[i].appendChild(grid);
-    }
+    let bigSquare = document.createElement("div");
+    bigSquare.classList.add("square");
+    bigSquare.setAttribute("id", `bigSquare${index+1}`);
+    gameBoard.appendChild(bigSquare);
   }
 }
 
@@ -133,6 +121,23 @@ function outputUsers(users) {
         const li = document.createElement('li');
         li.innerText = user.username;
         userList.appendChild(li);
+        let grid = document.createElement("div");
+        grid.classList.add('board_small');
+        for (var j = 0; j < 5; ++j) {
+          let smallSquare = document.createElement("div");
+          smallSquare.classList.add("square_small");
+          smallSquare.setAttribute("id", `${user.username}${j+1}`);
+          grid.appendChild(smallSquare);
+          li.appendChild(grid);
+        }
     });
-    createSquaresSmall();
 }
+
+//Prompt the user before leave chat room
+document.getElementById('leave-btn').addEventListener('click', () => {
+  const leaveRoom = confirm('Are you sure you want to leave the chatroom?');
+  if (leaveRoom) {
+    window.location = '../index.html';
+  } else {
+  }
+});

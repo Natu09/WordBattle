@@ -6,7 +6,8 @@ const {
     userJoin,
     getCurrentUser,
     userLeave,
-    getRoomUsers
+    getRoomUsers, 
+    loginCheck
 } = require('./utils/users')
 
 
@@ -19,11 +20,12 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 // Run when a client connects 
 io.on('connection', (socket) => {
-    // checks username for availability 
-    // socket.on('checkValidLogin', ({ username, room }) => {
-    //     const newUser = loginCheck(username, room)
-    //     io.emit('loginResp', newUser)
-    // })
+    // checks username and room for availability 
+    socket.on('checkValidLogin', ({ username, room }) => {
+        const newUser = loginCheck(username, room)
+        console.log(newUser)
+        io.emit('loginResp', newUser)
+    })
 
     // Runs when a user is successful in joining room
     socket.on('joinRoom', ({ username, room }) => {
@@ -39,6 +41,7 @@ io.on('connection', (socket) => {
 
         // Send user/room info to show who's online when someone joins a room
         io.to(user.room).emit('roomUsers', {
+            currentUser: user.username,
             room: user.room,
             users: getRoomUsers(user.room)
         });
@@ -47,9 +50,16 @@ io.on('connection', (socket) => {
     // Listens for word guess
     socket.on('wordGuess', guess => {
         const user = getCurrentUser(socket.id)
-        console.log(user, user.room)
         const feedback = check_answer(guess);
-        io.to(user.room).emit('feedback', feedback)
+        console.log(user)
+        console.log(feedback, 'feedback here')
+        if (user) {
+            // send room feedback to fill out the small squares and big squares
+            io.to(user.room).emit('feedback', {
+                user: user, 
+                tiles: feedback 
+            })
+        }
     })
 
 
@@ -60,13 +70,13 @@ io.on('connection', (socket) => {
         // Send user info to show when someone leaves
         if (user) {
             io.to(user.room).emit('message', `${user.username} has left the game`)
-        }
 
-        // Send user/room info to show who's online when someone leaves a room
-        // io.to(user.room).emit('roomUsers', {
-        //     room: user.room,
-        //     users: getRoomUsers(user.room)
-        // });
+            // Send user/room info to show who's online when someone leaves a room
+            io.to(user.room).emit('roomUsers', {
+                room: user.room,
+                users: getRoomUsers(user.room),
+            });
+        }
     })
 });
 
