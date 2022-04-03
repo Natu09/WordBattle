@@ -21,27 +21,24 @@
   </head>
 
 
-  <body style="background-color: #121213;">
-    <div class="row">
-      <div class="game-sidebar col-3 navbar flex-column">
-          <h3><i class="fas fa-comments"></i> Room Code:</h3>
-          <h2 id="room-coded"></h2>
-          <h3><i class="fas fa-users"></i> Users</h3>
-          <ul id="users">
-            <li id = "example">User 1</li>
-            <li id = "example1">User 2</li>
-            <li id = "example2">User 3</li>
-            <li id = "example3">User 4</li>
-            <li id = "example4">User 5</li>
-          </ul>
-      </div>
+  <body>
 
-      <div class="col-9">
-        <div id="row game">
-          <header>
-            <h1 class="title">WORD BATTLE</h1>
-          </header>
-  
+    <div class="chat-container">
+
+      <header class="chat-header">
+        <h1><i class="fas fa-smile"></i> Word Battle</h1>
+        <a id="leave-btn" class="btn">Leave Room</a>
+      </header>
+
+      <main class="chat-main">
+        <div class="chat-sidebar">
+          <h3><i class="fas fa-comments"></i> Room Name</h3>
+          <h2 id="room-name"></h2>
+          <h3><i class="fas fa-users"></i> Users</h3>
+          <ul id="users"></ul>
+        </div>
+
+        <div id="row">
           <div id="board-container">
             <div id="board"></div>
           </div>
@@ -84,7 +81,10 @@
             </div>
           </div>
         </div>
-      </div>
+      </main>
+
+      
+      
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
@@ -95,94 +95,5 @@
     ></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/main.js"></script>
-    <script>
-      var socket = io();
-      const keys = document.querySelectorAll(".keyboard-row button");
-      var index = 1;
-      var current_word = "";
-      var users = document.getElementById('users')
-      var items = users.getElementsByTagName("li");
-
-
-
-      //for-loop based on youtube video, I did the logic myself tho
-      //so that it's not super similar to the youtube video lol
-      //may want to delegate some of the logic to helper functions lol
-      for (let i = 0; i < keys.length; i++) {
-        keys[i].onclick = ({ target }) => {
-          console.log(current_word);
-          const letter = target.getAttribute("data-key");
-          if (letter === "enter") {
-            if(current_word.length<5){
-              alert("Word isn't 5 letters");
-            }else{
-              sendWord();
-              current_word = "";
-            }
-            return;
-          }
-          else if (letter === "del") {
-            current_word = current_word.slice(0, -1);
-            index--;
-            const currentSquare = document.getElementById(index);
-            currentSquare.textContent = '';
-            return;
-          }
-          else if(current_word.length>=5){
-            alert("At max word length"+current_word.length);
-          }
-          else{
-            const currentSquare = document.getElementById(index);
-            currentSquare.textContent = letter;
-            current_word = current_word.concat(letter);
-            index++;
-          }
-        };
-      }
-      //where word will be sent to server
-      function sendWord() {
-        socket.emit('submit guess', current_word);
-      }
-
-      //createSquares() taken from youtube video
-      document.addEventListener("DOMContentLoaded", () => {
-        createSquares();
-        createSquaresSmall();
-        function createSquares() {
-          const gameBoard = document.getElementById("board");
-          for (let index = 0; index < 30; index++) {
-            let square = document.createElement("div");
-            square.classList.add("square");
-            square.setAttribute("id", index + 1);
-            gameBoard.appendChild(square);
-          }
-        }
-        function createSquaresSmall() {
-          for (var i = 0; i < items.length; ++i) {
-            let grid = document.createElement("div");
-            grid.classList.add('board_small');
-            for (var j = 0; j < 5; ++j) {
-
-              let square = document.createElement("div");
-              square.classList.add("square_small");
-              //square.setAttribute("id", index + 1);
-              grid.appendChild(square);
-              items[i].appendChild(grid);
-            }
-          }
-        }
-      });
-
-      socket.on('feedback', function(tiles) {
-        var tileIndex = index-5;
-        counter=0;
-        for(var j = tileIndex; j < tileIndex+5; ++j){
-          const current_square = document.getElementById(j);
-          console.log(tiles);
-          current_square.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
-          counter++;
-        }
-      });
-    </script>
   </body>
 </html>
