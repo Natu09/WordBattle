@@ -195,13 +195,13 @@ a {
 }
 
 .square_small {
-  border: 1px solid rgb(58, 58, 60);
+  border: 2px solid rgb(58, 58, 60);
   width: 30px;
   height: 30px;
-  font-size: 15px;
-  font-weight: bold;
-  color: gainsboro;
-  text-transform: uppercase;
+  /* font-size: 15px; */
+  /* font-weight: bold; */
+  /* color: gainsboro; */
+  /* text-transform: uppercase; */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -210,6 +210,7 @@ a {
 .board_small {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
+  margin-top: 10px;
 }
 
 li {

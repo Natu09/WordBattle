@@ -38,12 +38,10 @@ io.on('connection', (socket) => {
 
         // Broadcast when a user connects to everyone else except the current user 
         socket.broadcast.to(user.room).emit('message', `${user.username} has joined the game`)
-
         // Send user/room info to show who's online when someone joins a room
         io.to(user.room).emit('roomUsers', {
-            currentUser: user.username,
             room: user.room,
-            users: getRoomUsers(user.room)
+            users: getRoomUsers(user.room),
         });
     })    
 
@@ -51,13 +49,11 @@ io.on('connection', (socket) => {
     socket.on('wordGuess', guess => {
         const user = getCurrentUser(socket.id)
         const feedback = check_answer(guess);
-        console.log(user)
-        console.log(feedback, 'feedback here')
         if (user) {
+            user.tiles = feedback
             // send room feedback to fill out the small squares and big squares
             io.to(user.room).emit('feedback', {
-                user: user, 
-                tiles: feedback 
+                user: user
             })
         }
     })
