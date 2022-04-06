@@ -2,6 +2,14 @@ const path = require('path');
 const http = require('http'); 
 const express = require('express');
 const socketio = require('socket.io');
+const { 
+    userJoin,
+    getCurrentUser,
+    userLeave,
+    getRoomUsers, 
+    loginCheck
+} = require('./utils/users')
+
 
 const app = express();
 const server = http.createServer(app);
@@ -17,36 +25,49 @@ var current_users=[];
 var current_word = "erase";
 let word_list = [];
 
-// for now a list of room codes to join
-const roomCodes = ['aa', 'bb', 'cc', 'dd', 'ee'];
-// for now a list of random nicknames
-const usernames = ['guest1', 'guest2', 'guest3', 'guest4', 'guest5', 'guest6', 'guest7', 'guest8', 'guest9', 
-'guest10', 'guest11'];
-
-var fs = require('fs');
-word_list = fs.readFileSync('words.txt').toString().split("\n");
-console.log(word_list.length);
-
+// Run when a client connects 
 io.on('connection', (socket) => {
-    // when a new user joins the room 
-    socket.on('join', ({ username, room }) => {
-        // if the user does not specify a nickname
-        if (username == '') { 
-            // Only use each defualt nickname once (can be improved later)
-            username = usernames.shift();
-        }
-        if (room == '') { 
-            // Only use each defualt nickname once (can be improved later)
-            room = roomCodes.shift();
-        }
-        const user = joinRoom(socket.id, username, room);
+    // checks username and room for availability 
+    socket.on('checkValidLogin', ({ username, room }) => {
+        const newUser = loginCheck(username, room)
+        console.log(newUser)
+        io.emit('loginResp', newUser)
+    })
 
-        socket.join(user.room);
+    // Runs when a user is successful in joining room
+    socket.on('joinRoom', ({ username, room }) => {
+        const user = userJoin(socket.id, username, room)
 
-        io.to(user.room).emit('users', {
-            users: getUsers(user.room) 
+        socket.join(user.room)
+
+        // Welcomes the current user and only the current user
+        socket.emit('message', 'Welcome to Word Battle')
+
+        // Broadcast when a user connects to everyone else except the current user 
+        socket.broadcast.to(user.room).emit('message', `${user.username} has joined the game`)
+
+        // Send user/room info to show who's online when someone joins a room
+        io.to(user.room).emit('roomUsers', {
+            currentUser: user.username,
+            room: user.room,
+            users: getRoomUsers(user.room)
         });
-    });
+    })    
+
+    // Listens for word guess
+    socket.on('wordGuess', guess => {
+        const user = getCurrentUser(socket.id)
+        const feedback = check_answer(guess);
+        console.log(user)
+        console.log(feedback, 'feedback here')
+        if (user) {
+            // send room feedback to fill out the small squares and big squares
+            io.to(user.room).emit('feedback', {
+                user: user, 
+                tiles: feedback 
+            })
+        }
+    })
 
     socket.on('submit guess', (guess) => {
         checkValidWord(guess).then((message) => {
@@ -65,16 +86,21 @@ io.on('connection', (socket) => {
         })
     });
 
+    // Runs when a client disconnects
     socket.on('disconnect', () => {
-        // Removes user from list of users
-        const user = leaveRoom(socket.id);
+        const user = userLeave(socket.id)
+
+        // Send user info to show when someone leaves
         if (user) {
-            // Display the updated list of users
-            io.to(user.room).emit('users', {
-                users: getUsers(user.room) 
+            io.to(user.room).emit('message', `${user.username} has left the game`)
+
+            // Send user/room info to show who's online when someone leaves a room
+            io.to(user.room).emit('roomUsers', {
+                room: user.room,
+                users: getRoomUsers(user.room),
             });
         }
-    });
+    })
 });
 
 function check_win(guess){
@@ -119,7 +145,6 @@ function update_current_word(){
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 var checkValidWord = function(word) {
     return new Promise(function (resolve, reject) {
@@ -141,3 +166,5 @@ var checkValidWord = function(word) {
         });
     });
 }
+
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

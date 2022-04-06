@@ -1,123 +1,159 @@
-var socket = io();
-      const keys = document.querySelectorAll(".keyboard-row button");
-      var index = 1;
-      var current_word = "";
-      var userList = document.getElementById('users')
-      var items = userList.getElementsByTagName("li");
-      // will switch to a better method of joining the room later
-      const { username, room } = Qs.parse(location.search, {
-        ignoreQueryPrefix: true,
-      });
+const roomName = document.getElementById('room-name');
+const userList = document.getElementById('users');
+const keys = document.querySelectorAll(".keyboard-row button");
 
-      // Join this user to the chatroom
-      socket.emit('join', ({ username, room }));
-      
+// Get username and room from URL
+let { username, room } = Qs.parse(location.search, {
+    ignoreQueryPrefix: true,
+});
 
-      //for-loop based on youtube video, I did the logic myself tho
-      //so that it's not super similar to the youtube video lol
-      //may want to delegate some of the logic to helper functions lol
-      for (let i = 0; i < keys.length; i++) {
-        keys[i].onclick = ({ target }) => {
-          console.log(current_word);
-          const letter = target.getAttribute("data-key");
-          if (letter === "enter") {
-            if(current_word.length<5){
-              cust_alert("Word isn't 5 letters");
-            }else{
-              sendWord();
-              //current_word = "";
-            }
-            return;
-          }
-          else if (letter === "del") {
-            current_word = current_word.slice(0, -1);
-            index--;
-            const currentSquare = document.getElementById(index);
-            currentSquare.textContent = '';
-            return;
-          }
-          else if(current_word.length>=5){
-            cust_alert("At max word length"+current_word.length);
-          }
-          else{
-            const currentSquare = document.getElementById(index);
-            currentSquare.textContent = letter;
-            current_word = current_word.concat(letter);
-            index++;
-          }
-        };
-      }
-      //where word will be sent to server
-      function sendWord() {
-        socket.emit('submit guess', current_word);
-      }
+const socket = io();
 
-      //createSquares() taken from youtube video
-      document.addEventListener("DOMContentLoaded", () => {
-        createSquares();
-        createSquaresSmall();
-        function createSquares() {
-          const gameBoard = document.getElementById("board");
-          for (let index = 0; index < 30; index++) {
-            let square = document.createElement("div");
-            square.classList.add("square");
-            square.setAttribute("id", index + 1);
-            gameBoard.appendChild(square);
-          }
-        }
-        $("#alert-primary").hide();
-      });
+// Join chatroom
+socket.emit('joinRoom', { username, room });
 
-      socket.on('feedback', function(tiles) {
-        var tileIndex = index-5;
-        counter=0;
-        for(var j = tileIndex; j < tileIndex+5; ++j){
-          const current_square = document.getElementById(j);
-          console.log(tiles);
-          current_square.classList.add("animate__flipInX");
-          current_square.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
-          counter++;
-        }
+// Get room and users
+socket.on('roomUsers', ({ currentUser, room, users }) => {
+  console.log(currentUser)
+    outputRoomName(room);
+    outputUsers(users, currentUser);
+});
+
+// Message from server
+// we can maybe add a alert or notification that a user has joined the room
+socket.on('message', (message) => {
+    console.log(message);
+});
+
+//where word will be sent to server
+function sendWord() {
+  socket.emit('wordGuess', (current_word));
+}
+
+socket.on('feedback', ({user, tiles}) => {
+  console.log("user", user)
+  console.log("tiles", tiles)
+  var tileIndex = index-5;
+  counter=0;
+  for(var j = tileIndex; j < tileIndex+5; ++j){
+    if (user?.username === username) {
+      const bigSquare = document.getElementById(`bigSquare${j}`);
+      bigSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+    }
+    
+    let smallSquareID = counter+1 % 5
+    if (smallSquareID == 0) {
+      smallSquareID = 5
+    }  
+    console.log(smallSquareID, `${user?.username}${smallSquareID}`, 'first')
+    const smallSquare = document.getElementById(`${user?.username}${smallSquareID}`);
+    smallSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+    counter++;
+  }
+});
+
+socket.on('invalid word', function(tiles) {
+    cust_alert("Not a valid word!");
+  });
+
+//createSquares() taken from youtube video
+document.addEventListener("DOMContentLoaded", () => {
+  createSquares();
+});
+
+
+let index = 1;
+let current_word = "";
+//for-loop based on youtube video, I did the logic myself tho
+//so that it's not super similar to the youtube video lol
+//may want to delegate some of the logic to helper functions lol
+for (let i = 0; i < keys.length; i++) {
+  keys[i].onclick = ({ target }) => {
+
+    // initialize the class IDs to reference later
+    const bigSquareID = `bigSquare${index}`
+
+    const letter = target.getAttribute("data-key");
+    if (letter === "enter") {
+      if(current_word.length<5){
+        cust_alert("Word isn't 5 letters");
+      }else{
+        sendWord();
         current_word = "";
-      });
+      }
+      return;
+    }
+    else if (letter === "del") {
+      current_word = current_word.slice(0, -1);
+      index--;
+      
+      const currentSquare = document.getElementById(bigSquareID);
+      currentSquare.textContent = '';
+      return;
+    }
+    else if(current_word.length>=5){
+      alert("At max word length"+current_word.length);
+    }
+    else{
+      const currentSquare = document.getElementById(bigSquareID);
+      currentSquare.textContent = letter;
+      current_word = current_word.concat(letter);
+      index++;
+    }
+  };
+}
 
-      socket.on('invalid word', function(tiles) {
-        cust_alert("Not a valid word!");
-      });
+function createSquares() {
+  const gameBoard = document.getElementById("board");
+  for (let index = 0; index < 30; index++) {
+    let bigSquare = document.createElement("div");
+    bigSquare.classList.add("square");
+    bigSquare.setAttribute("id", `bigSquare${index+1}`);
+    gameBoard.appendChild(bigSquare);
+  }
+  $("#alert-primary").hide();
+}
 
-      // Display the list of users sent from the server
-      socket.on('users', ({ users }) => {
-        displayUsers(users);
-      });
-      function createSquaresSmall() {
-        for (var i = 0; i < items.length; ++i) {
-          let grid = document.createElement("div");
-          grid.classList.add('board_small');
-          for (var j = 0; j < 5; ++j) {
-
-            let square = document.createElement("div");
-            square.classList.add("square_small");
-            //square.setAttribute("id", index + 1);
-            grid.appendChild(square);
-            items[i].appendChild(grid);
-          }
+// Add room name to DOM
+function outputRoomName(room) {
+    roomName.innerText = room;
+}
+  
+// Add users to DOM
+function outputUsers(users) {
+    userList.innerHTML = '';
+    users.forEach((user) => {
+        const li = document.createElement('li');
+        li.innerText = user.username;
+        userList.appendChild(li);
+        let grid = document.createElement("div");
+        grid.classList.add('board_small');
+        for (var j = 0; j < 5; ++j) {
+          let smallSquare = document.createElement("div");
+          smallSquare.classList.add("square_small");
+          smallSquare.setAttribute("id", `${user.username}${j+1}`);
+          grid.appendChild(smallSquare);
+          li.appendChild(grid);
         }
-      }
+    });
+}
 
-      function cust_alert(message){
-        var alert = document.getElementById("alert-primary");
-        alert.innerHTML = '';
-        var y = document.createTextNode(message);
-        alert.appendChild(y);
+function cust_alert(message){
+    var alert = document.getElementById("alert-primary");
+    alert.innerHTML = '';
+    var y = document.createTextNode(message);
+    alert.appendChild(y);
 
-        $("#alert-primary").fadeTo(2000, 500).slideUp(500, function() {
-          $("#alert-primary").slideUp(500);
-        });
-      }
+    $("#alert-primary").fadeTo(2000, 500).slideUp(500, function() {
+      $("#alert-primary").slideUp(500);
+    });
+  }
 
-      // Displays list of active users
-      function displayUsers(users) {
-        userList.innerHTML = `${users.map(user => `<li id = "example">${user.username}</li>`).join('')}`;
-        createSquaresSmall();
-      }
- 
+//Prompt the user before leave chat room
+document.getElementById('leave-btn').addEventListener('click', () => {
+  const leaveRoom = confirm('Are you sure you want to leave the chatroom?');
+  if (leaveRoom) {
+    window.location = '../index.html';
+  } else {
+  }
+});
