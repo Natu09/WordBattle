@@ -2,7 +2,7 @@ const path = require('path');
 const http = require('http'); 
 const express = require('express');
 const socketio = require('socket.io');
-const { 
+const {
     userJoin,
     getCurrentUser,
     userLeave,
@@ -15,7 +15,6 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
-const { joinRoom, getCurrentUser, leaveRoom, getUsers } = require('./utils/users');
 const axios = require("axios");
 
 // Set static folder, this allows my other files to be seen
@@ -57,18 +56,20 @@ io.on('connection', (socket) => {
     // Listens for word guess
     socket.on('wordGuess', guess => {
         const user = getCurrentUser(socket.id)
-        const feedback = check_answer(guess);
-        console.log(user)
-        console.log(feedback, 'feedback here')
-        if (user) {
-            // send room feedback to fill out the small squares and big squares
-            io.to(user.room).emit('feedback', {
-                user: user, 
-                tiles: feedback 
-            })
-        }
+        checkValidWord(guess).then((message) => {
+            const feedback = check_answer(guess);
+            if (user) {
+                // send room feedback to fill out the small squares and big squares
+                io.to(user.room).emit('feedback', {
+                    user: user,
+                    tiles: feedback
+                })
+            }
+        }).catch((message) => {
+            socket.emit('invalid word');
+        })
     })
-
+/*
     socket.on('submit guess', (guess) => {
         checkValidWord(guess).then((message) => {
             var feedback = check_answer(guess);
@@ -76,7 +77,7 @@ io.on('connection', (socket) => {
                 /*To-Do:
                 -send winner information to clients
                 -tell clients to clear board
-                -switch to new word (update "current_word")*/
+                -switch to new word (update "current_word")
 
             }
             socket.emit('feedback', feedback);
@@ -85,7 +86,7 @@ io.on('connection', (socket) => {
             socket.emit('invalid word');
         })
     });
-
+*/
     // Runs when a client disconnects
     socket.on('disconnect', () => {
         const user = userLeave(socket.id)

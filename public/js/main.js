@@ -31,9 +31,8 @@ function sendWord() {
 }
 
 socket.on('feedback', ({user, tiles}) => {
-  console.log("user", user)
-  console.log("tiles", tiles)
   var tileIndex = index-5;
+  current_word = "";
   counter=0;
   for(var j = tileIndex; j < tileIndex+5; ++j){
     if (user?.username === username) {
@@ -54,6 +53,8 @@ socket.on('feedback', ({user, tiles}) => {
 
 socket.on('invalid word', function(tiles) {
     cust_alert("Not a valid word!");
+    index--;
+    console.log("index at invalid word: "+index);
   });
 
 //createSquares() taken from youtube video
@@ -64,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let index = 1;
 let current_word = "";
+let indexSet = new Set([1,6,11,16,21,26]);
 //for-loop based on youtube video, I did the logic myself tho
 //so that it's not super similar to the youtube video lol
 //may want to delegate some of the logic to helper functions lol
@@ -72,27 +74,30 @@ for (let i = 0; i < keys.length; i++) {
 
     // initialize the class IDs to reference later
     const bigSquareID = `bigSquare${index}`
-
     const letter = target.getAttribute("data-key");
     if (letter === "enter") {
       if(current_word.length<5){
         cust_alert("Word isn't 5 letters");
       }else{
         sendWord();
-        current_word = "";
+        //current_word = "";
       }
       return;
     }
     else if (letter === "del") {
       current_word = current_word.slice(0, -1);
-      index--;
-      
+      if(!indexSet.has(index)){
+          console.log("here: "+index);
+          index--;
+      }
+      //index--;
+        console.log("here 2: "+index);
       const currentSquare = document.getElementById(bigSquareID);
       currentSquare.textContent = '';
       return;
     }
     else if(current_word.length>=5){
-      alert("At max word length"+current_word.length);
+      cust_alert("At max word length"+current_word.length);
     }
     else{
       const currentSquare = document.getElementById(bigSquareID);
@@ -100,6 +105,9 @@ for (let i = 0; i < keys.length; i++) {
       current_word = current_word.concat(letter);
       index++;
     }
+      console.log("This is the square id: "+bigSquareID);
+      console.log("This is the index: "+i);
+      console.log("This is the current word: "+current_word);
   };
 }
 
