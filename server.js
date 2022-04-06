@@ -15,6 +15,9 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
+let green_count = 0;
+let user_wins = {};
+
 // Set static folder, this allows my other files to be seen
 app.use(express.static(path.join(__dirname, 'public')))
 
@@ -29,7 +32,11 @@ io.on('connection', (socket) => {
 
     // Runs when a user is successful in joining room
     socket.on('joinRoom', ({ username, room }) => {
-        const user = userJoin(socket.id, username, room)
+        let wins = user_wins[username]
+        if (typeof wins == 'undefined') {
+            wins = 0
+        }
+        const user = userJoin(socket.id, username, room, wins)
 
         socket.join(user.room)
 
@@ -43,7 +50,8 @@ io.on('connection', (socket) => {
         io.to(user.room).emit('roomUsers', {
             currentUser: user.username,
             room: user.room,
-            users: getRoomUsers(user.room)
+            users: getRoomUsers(user.room),
+            num_of_wins: user.wins
         });
     })    
 
@@ -57,10 +65,33 @@ io.on('connection', (socket) => {
             // send room feedback to fill out the small squares and big squares
             io.to(user.room).emit('feedback', {
                 user: user, 
-                tiles: feedback 
+                tiles: feedback,
+                letters: letterArray
             })
+
+            if (green_count === 5) {
+                green_count = 0;
+                user.wins++;
+                user_wins[user.username] = user.wins;
+                console.log(user.wins)
+                io.to(user.room).emit('win', user)
+            }
+
         }
     })
+
+    socket.on('restart', (id) => {
+        const user = getCurrentUser(id)
+        if(user) {
+            green_count = 0;
+            letterArray = [];
+            // generate new word here
+
+            io.to(user.room).emit('reset')
+        } else {
+            console.log("Error an unknown user tried to restart the game in room: " + user.room)
+        }
+    }) 
 
 
     // Runs when a client disconnects
@@ -80,19 +111,24 @@ io.on('connection', (socket) => {
     })
 });
 
+let letterArray = [];
 var current_word = "crane";
 function check_answer(guess){
     var tileArray = [];
+    green_count = 0;
+    letterArray = [];
     for (let i = 0; i < guess.length; i++) {
         if(current_word.includes(guess[i])){
             if(current_word[i]===guess[i]){
                 tileArray[i]="green";
+                green_count++;
             }else{
                 tileArray[i]="yellow";
             }
         }else{
-            tileArray[i]="grey";
+            tileArray[i]="#484848"; // light gray
         }
+        letterArray[i] = guess[i];
     }
     return tileArray;
 }

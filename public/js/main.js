@@ -13,10 +13,10 @@ const socket = io();
 socket.emit('joinRoom', { username, room });
 
 // Get room and users
-socket.on('roomUsers', ({ currentUser, room, users }) => {
+socket.on('roomUsers', ({ currentUser, room, users, wins }) => {
   console.log(currentUser)
     outputRoomName(room);
-    outputUsers(users, currentUser);
+    outputUsers(users, currentUser, wins);
 });
 
 // Message from server
@@ -30,7 +30,7 @@ function sendWord() {
   socket.emit('wordGuess', (current_word));
 }
 
-socket.on('feedback', ({user, tiles}) => {
+socket.on('feedback', ({user, tiles, letters}) => {
   console.log("user", user)
   console.log("tiles", tiles)
   var tileIndex = index-5;
@@ -38,6 +38,7 @@ socket.on('feedback', ({user, tiles}) => {
   for(var j = tileIndex; j < tileIndex+5; ++j){
     if (user?.username === username) {
       const bigSquare = document.getElementById(`bigSquare${j}`);
+      animateCSS(bigSquare, 'flipInY')
       bigSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
     }
     
@@ -48,9 +49,33 @@ socket.on('feedback', ({user, tiles}) => {
     console.log(smallSquareID, `${user?.username}${smallSquareID}`, 'first')
     const smallSquare = document.getElementById(`${user?.username}${smallSquareID}`);
     smallSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+    shadeKeyboard(letters[counter], tiles[counter])
     counter++;
   }
 });
+
+socket.on('reset', () => {
+  document.location.reload();
+})
+
+const closeModalButtons = document.querySelectorAll('[data-ok-button]')
+const overlay = document.getElementById('overlay')
+
+socket.on('win', (user) => {
+  const modal = document.getElementById('winModal')
+  const div = document.createElement('div');
+  div.classList.add('modal-header')
+  div.innerHTML =  `<p><strong>${user.username}</strong> has won the game</p>`
+  modal.insertAdjacentElement('afterbegin' ,div)
+  openModal(modal)
+})
+
+closeModalButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const modal = button.closest('.winModal')
+    closeModal(modal);
+  })
+})
 
 //createSquares() taken from youtube video
 document.addEventListener("DOMContentLoaded", () => {
@@ -93,6 +118,7 @@ for (let i = 0; i < keys.length; i++) {
     else{
       const currentSquare = document.getElementById(bigSquareID);
       currentSquare.textContent = letter;
+      animateCSS(currentSquare, "pulse")
       current_word = current_word.concat(letter);
       index++;
     }
@@ -109,6 +135,13 @@ function createSquares() {
   }
 }
 
+function removeSquares() {
+  const gameBoard = document.getElementById("board");
+  for (let index = 0; index < 30; index++) {
+    gameBoard.removeChild(gameBoard.firstChild);
+  }
+}
+
 // Add room name to DOM
 function outputRoomName(room) {
     roomName.innerText = room;
@@ -119,7 +152,7 @@ function outputUsers(users) {
     userList.innerHTML = '';
     users.forEach((user) => {
         const li = document.createElement('li');
-        li.innerText = user.username;
+        li.innerHTML = `${user.username} &#9733; ${user.wins}`;
         userList.appendChild(li);
         let grid = document.createElement("div");
         grid.classList.add('board_small');
@@ -141,3 +174,59 @@ document.getElementById('leave-btn').addEventListener('click', () => {
   } else {
   }
 });
+
+function shadeKeyboard(letter, color) {
+  console.log("here")
+  for (const elem of document.querySelectorAll(".keyboard-row button")) {
+      if (elem.textContent === letter) {
+        console.log("orHere")
+          let oldColor = elem.style.backgroundColor
+          if (oldColor === 'green') {
+              return
+          } 
+
+          if (oldColor === 'yellow' && color !== 'green') {
+              return
+          }
+
+          elem.style.backgroundColor = color
+          break
+      }
+  }
+}
+
+
+function openModal(modal) {
+  if (modal == null) return
+  modal.classList.add('active')
+  overlay.classList.add('active')
+}
+
+function closeModal(modal) {
+  if (modal == null) return
+  modal.classList.remove('active')
+  overlay.classList.remove('active')
+
+  socket.emit('restart', socket.id)
+}
+
+// function for animation creds:https://animate.style/#javascript
+const animateCSS = (element, animation, prefix = 'animate__') =>
+// We create a Promise and return it
+new Promise((resolve, reject) => {
+  const animationName = `${prefix}${animation}`;
+  // const node = document.querySelector(element);
+  const node = element
+  node.style.setProperty('--animate-duration', '0.3s');
+
+  node.classList.add(`${prefix}animated`, animationName);
+
+  // When the animation ends, we clean the classes and resolve the Promise
+  function handleAnimationEnd(event) {
+    event.stopPropagation();
+    node.classList.remove(`${prefix}animated`, animationName);
+    resolve('Animation ended');
+  }
+
+  node.addEventListener('animationend', handleAnimationEnd, {once: true});
+}); 

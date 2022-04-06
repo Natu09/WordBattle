@@ -52,8 +52,8 @@ function checkSets(username, room) {
 }
 
   // Join user to game room
-function userJoin(id, username, room) {
-    const user = { id, username, room };
+function userJoin(id, username, room, wins) {
+    const user = { id, username, room, wins };
   
     users.push(user);
     userSet.add(username); // add the name to the taken username set
