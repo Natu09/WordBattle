@@ -13,10 +13,9 @@ const socket = io();
 socket.emit('joinRoom', { username, room });
 
 // Get room and users
-socket.on('roomUsers', ({ currentUser, room, users }) => {
-  console.log(currentUser)
-    outputRoomName(room);
-    outputUsers(users, currentUser);
+socket.on('roomUsers', ({ room, users }) => {
+  outputRoomName(room);
+  outputUsers(users);
 });
 
 // Message from server
@@ -30,23 +29,22 @@ function sendWord() {
   socket.emit('wordGuess', (current_word));
 }
 
-socket.on('feedback', ({user, tiles}) => {
+socket.on('feedback', ({user}) => {
   var tileIndex = index-4;
   current_word = "";
   counter=0;
   for(var j = tileIndex; j < tileIndex+5; ++j){
     if (user?.username === username) {
       const bigSquare = document.getElementById(`bigSquare${j}`);
-      bigSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+      bigSquare.style = `background-color:${user?.tiles[counter]};border-color:${user?.tiles[counter]}`;
     }
-    
     let smallSquareID = counter+1 % 5
     if (smallSquareID == 0) {
       smallSquareID = 5
     }  
     console.log(smallSquareID, `${user?.username}${smallSquareID}`, 'first')
     const smallSquare = document.getElementById(`${user?.username}${smallSquareID}`);
-    smallSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
+    smallSquare.style = `background-color:${user?.tiles[counter]};border-color:${user?.tiles[counter]}`;
     counter++;
   }
 });
@@ -110,6 +108,7 @@ for (let i = 0; i < keys.length; i++) {
 }
 
 function createSquares() {
+  console.log(username)
   const gameBoard = document.getElementById("board");
   for (let index = 0; index < 30; index++) {
     let bigSquare = document.createElement("div");
@@ -120,28 +119,33 @@ function createSquares() {
   $("#alert-primary").hide();
 }
 
+// Add users to DOM
+// creates the name and small square list on the side navigation
+function outputUsers(users) {
+  userList.innerHTML = '';
+  users.forEach((user) => {
+      const li = document.createElement('li');
+      li.innerText = user.username;
+      userList.appendChild(li);
+      let grid = document.createElement("div");
+      grid.classList.add('board_small');
+      const tiles = user?.tiles
+      for (var j = 0; j < 5; ++j) {
+        let smallSquare = document.createElement("div");
+        smallSquare.classList.add("square_small");
+        smallSquare.setAttribute("id", `${user?.username}${j+1}`);
+        grid.appendChild(smallSquare);
+        li.appendChild(grid);
+        if (tiles && tiles.length > 0) {
+          smallSquare.style = `background-color:${tiles[j]};border-color:${tiles[j]}`;
+        }
+      }
+  });
+}
+
 // Add room name to DOM
 function outputRoomName(room) {
-    roomName.innerText = room;
-}
-  
-// Add users to DOM
-function outputUsers(users) {
-    userList.innerHTML = '';
-    users.forEach((user) => {
-        const li = document.createElement('li');
-        li.innerText = user.username;
-        userList.appendChild(li);
-        let grid = document.createElement("div");
-        grid.classList.add('board_small');
-        for (var j = 0; j < 5; ++j) {
-          let smallSquare = document.createElement("div");
-          smallSquare.classList.add("square_small");
-          smallSquare.setAttribute("id", `${user.username}${j+1}`);
-          grid.appendChild(smallSquare);
-          li.appendChild(grid);
-        }
-    });
+  roomName.innerText = room;
 }
 
 function cust_alert(message){
