@@ -39,6 +39,7 @@ socket.on('feedback', ({user, tiles, letters}) => {
     if (user?.username === username) {
       const bigSquare = document.getElementById(`bigSquare${j}`);
       animateCSS(bigSquare, 'flipInY')
+      shadeKeyboard(letters[counter], tiles[counter])
       bigSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
     }
     
@@ -49,7 +50,6 @@ socket.on('feedback', ({user, tiles, letters}) => {
     console.log(smallSquareID, `${user?.username}${smallSquareID}`, 'first')
     const smallSquare = document.getElementById(`${user?.username}${smallSquareID}`);
     smallSquare.style = `background-color:${tiles[counter]};border-color:${tiles[counter]}`;
-    shadeKeyboard(letters[counter], tiles[counter])
     counter++;
   }
 });
