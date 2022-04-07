@@ -216,3 +216,12 @@ li {
   display: block;
   text-align: center;
 }
+
+#alert-primary{
+  position:fixed;
+  top: 25%;
+  left: 53%;
+  width: 20%;
+  z-index:9999;
+  border-radius:5px;
+}
