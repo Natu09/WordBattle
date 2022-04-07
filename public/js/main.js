@@ -30,8 +30,8 @@ function sendWord() {
 }
 
 socket.on('feedback', ({user}) => {
-  
-  var tileIndex = index-5;
+  var tileIndex = index-4;
+  current_word = "";
   counter=0;
   for(var j = tileIndex; j < tileIndex+5; ++j){
     if (user?.username === username) {
@@ -49,13 +49,19 @@ socket.on('feedback', ({user}) => {
   }
 });
 
+socket.on('invalid word', function(tiles) {
+    cust_alert("Not a valid word!");
+  });
+
 //createSquares() taken from youtube video
 document.addEventListener("DOMContentLoaded", () => {
   createSquares();
 });
 
-let index = 1;
+
+let index = 0;
 let current_word = "";
+let indexSet = new Set([1,6,11,16,21,26]);
 //for-loop based on youtube video, I did the logic myself tho
 //so that it's not super similar to the youtube video lol
 //may want to delegate some of the logic to helper functions lol
@@ -63,34 +69,40 @@ for (let i = 0; i < keys.length; i++) {
   keys[i].onclick = ({ target }) => {
 
     // initialize the class IDs to reference later
-    const bigSquareID = `bigSquare${index}`
-
+    //const bigSquareID = `bigSquare${index}`
     const letter = target.getAttribute("data-key");
     if (letter === "enter") {
       if(current_word.length<5){
-        alert("Word isn't 5 letters");
+        cust_alert("Word isn't 5 letters");
       }else{
         sendWord();
-        current_word = "";
+        //current_word = "";
       }
       return;
     }
     else if (letter === "del") {
       current_word = current_word.slice(0, -1);
-      index--;
-      
-      const currentSquare = document.getElementById(bigSquareID);
-      currentSquare.textContent = '';
+      if(!indexSet.has(index)){
+          if(!current_word)return;
+          const currentSquare = document.getElementById(`bigSquare${index}`);
+          currentSquare.textContent = '';
+          index--;
+      }else{
+          const currentSquare = document.getElementById(`bigSquare${index}`);
+          currentSquare.textContent = '';
+      }
       return;
     }
     else if(current_word.length>=5){
-      alert("At max word length"+current_word.length);
+      cust_alert("At max word length"+current_word.length);
     }
     else{
+        if(!current_word && indexSet.has(index)) index--;
+        index++;
+        const bigSquareID = `bigSquare${index}`
       const currentSquare = document.getElementById(bigSquareID);
       currentSquare.textContent = letter;
       current_word = current_word.concat(letter);
-      index++;
     }
   };
 }
@@ -104,6 +116,7 @@ function createSquares() {
     bigSquare.setAttribute("id", `bigSquare${index+1}`);
     gameBoard.appendChild(bigSquare);
   }
+  $("#alert-primary").hide();
 }
 
 // Add users to DOM
@@ -134,6 +147,17 @@ function outputUsers(users) {
 function outputRoomName(room) {
   roomName.innerText = room;
 }
+
+function cust_alert(message){
+    var alert = document.getElementById("alert-primary");
+    alert.innerHTML = '';
+    var y = document.createTextNode(message);
+    alert.appendChild(y);
+
+    $("#alert-primary").fadeTo(1000, 500).slideUp(500, function() {
+      $("#alert-primary").slideUp(500);
+    });
+  }
 
 //Prompt the user before leave chat room
 document.getElementById('leave-btn').addEventListener('click', () => {
