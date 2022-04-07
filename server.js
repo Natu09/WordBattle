@@ -21,7 +21,7 @@ const axios = require("axios");
 app.use(express.static(path.join(__dirname, 'public')))
 
 var current_users=[];
-var current_word = "erase";
+var current_word = "coach";
 let word_list = [];
 
 // Run when a client connects 

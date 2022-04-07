@@ -150,7 +150,7 @@ function cust_alert(message){
     var y = document.createTextNode(message);
     alert.appendChild(y);
 
-    $("#alert-primary").fadeTo(2000, 500).slideUp(500, function() {
+    $("#alert-primary").fadeTo(1000, 500).slideUp(500, function() {
       $("#alert-primary").slideUp(500);
     });
   }
