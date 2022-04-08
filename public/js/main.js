@@ -29,7 +29,7 @@ function sendWord() {
   socket.emit('wordGuess', (current_word));
 }
 
-socket.on('feedback', ({user}) => {
+socket.on('feedback', ({user, letters}) => {
   var tileIndex = index-4;
   current_word = "";
   counter=0;
@@ -37,6 +37,8 @@ socket.on('feedback', ({user}) => {
     if (user?.username === username) {
       const bigSquare = document.getElementById(`bigSquare${j}`);
       bigSquare.style = `background-color:${user?.tiles[counter]};border-color:${user?.tiles[counter]}`;
+      animateCSS(bigSquare, 'flipInY')
+      shadeKeyboard(letters[counter], user?.tiles[counter])
     }
     let smallSquareID = counter+1 % 5
     if (smallSquareID == 0) {
@@ -52,6 +54,28 @@ socket.on('feedback', ({user}) => {
 socket.on('invalid word', function(tiles) {
     cust_alert("Not a valid word!");
   });
+socket.on('reset', () => {
+  document.location.reload();
+})
+
+const closeModalButtons = document.querySelectorAll('[data-ok-button]')
+const overlay = document.getElementById('overlay')
+
+socket.on('win', (user) => {
+  const modal = document.getElementById('winModal')
+  const div = document.createElement('div');
+  div.classList.add('modal-header')
+  div.innerHTML =  `<p><strong>${user.username}</strong> has won the game</p>`
+  modal.insertAdjacentElement('afterbegin' ,div)
+  openModal(modal)
+})
+
+closeModalButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const modal = button.closest('.winModal')
+    closeModal(modal);
+  })
+})
 
 //createSquares() taken from youtube video
 document.addEventListener("DOMContentLoaded", () => {
@@ -102,6 +126,7 @@ for (let i = 0; i < keys.length; i++) {
         const bigSquareID = `bigSquare${index}`
       const currentSquare = document.getElementById(bigSquareID);
       currentSquare.textContent = letter;
+      animateCSS(currentSquare, "pulse")
       current_word = current_word.concat(letter);
     }
   };
@@ -125,7 +150,7 @@ function outputUsers(users) {
   userList.innerHTML = '';
   users.forEach((user) => {
       const li = document.createElement('li');
-      li.innerText = user.username;
+      li.innerHTML = `${user.username} &#9733; ${user.wins}`;
       userList.appendChild(li);
       let grid = document.createElement("div");
       grid.classList.add('board_small');
@@ -167,3 +192,57 @@ document.getElementById('leave-btn').addEventListener('click', () => {
   } else {
   }
 });
+
+function shadeKeyboard(letter, color) {
+  for (const elem of document.querySelectorAll(".keyboard-row button")) {
+      if (elem.textContent === letter) {
+          let oldColor = elem.style.backgroundColor
+          if (oldColor === 'green') {
+              return
+          } 
+
+          if (oldColor === '#FFFF66' && color !== 'green') {
+              return
+          }
+
+          elem.style.backgroundColor = color
+          break
+      }
+  }
+}
+
+
+function openModal(modal) {
+  if (modal == null) return
+  modal.classList.add('active')
+  overlay.classList.add('active')
+}
+
+function closeModal(modal) {
+  if (modal == null) return
+  modal.classList.remove('active')
+  overlay.classList.remove('active')
+
+  socket.emit('restart', socket.id)
+}
+
+// function for animation creds:https://animate.style/#javascript
+const animateCSS = (element, animation, prefix = 'animate__') =>
+// We create a Promise and return it
+new Promise((resolve, reject) => {
+  const animationName = `${prefix}${animation}`;
+  // const node = document.querySelector(element);
+  const node = element
+  node.style.setProperty('--animate-duration', '0.3s');
+
+  node.classList.add(`${prefix}animated`, animationName);
+
+  // When the animation ends, we clean the classes and resolve the Promise
+  function handleAnimationEnd(event) {
+    event.stopPropagation();
+    node.classList.remove(`${prefix}animated`, animationName);
+    resolve('Animation ended');
+  }
+
+  node.addEventListener('animationend', handleAnimationEnd, {once: true});
+}); 
