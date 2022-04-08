@@ -16,6 +16,8 @@ const server = http.createServer(app);
 const io = socketio(server);
 
 const axios = require("axios");
+let green_count = 0;
+let user_wins = {};
 
 // Set static folder, this allows my other files to be seen
 app.use(express.static(path.join(__dirname, 'public')))
@@ -35,7 +37,11 @@ io.on('connection', (socket) => {
 
     // Runs when a user is successful in joining room
     socket.on('joinRoom', ({ username, room }) => {
-        const user = userJoin(socket.id, username, room)
+        let wins = user_wins[username]
+        if (typeof wins == 'undefined') {
+            wins = 0
+        }
+        const user = userJoin(socket.id, username, room, wins)
 
         socket.join(user.room)
 
@@ -48,6 +54,7 @@ io.on('connection', (socket) => {
         io.to(user.room).emit('roomUsers', {
             room: user.room,
             users: getRoomUsers(user.room),
+            num_of_wins: user.wins
         });
     })    
 
@@ -61,8 +68,16 @@ io.on('connection', (socket) => {
                 // send room feedback to fill out the small squares and big squares
                 io.to(user.room).emit('feedback', {
                     user: user,
-                    tiles: feedback
+                    tiles: feedback,
+                    letters: letterArray
                 })
+
+                if (green_count === 5) {
+                    green_count = 0;
+                    user.wins++;
+                    user_wins[user.username] = user.wins;
+                    io.to(user.room).emit('win', user)
+                }
             }
         }).catch((message) => {
             socket.emit('invalid word');
@@ -86,6 +101,19 @@ io.on('connection', (socket) => {
         })
     });
 */
+
+    socket.on('restart', (id) => {
+        const user = getCurrentUser(id)
+        if(user) {
+            green_count = 0;
+            letterArray = [];
+            // generate new word here
+            // update_current_word();
+            io.to(user.room).emit('reset')
+        } else {
+            console.log(`Error an unknown user tried to restart the game in room: ${user.room}`)
+        }
+    }) 
     // Runs when a client disconnects
     socket.on('disconnect', () => {
         const user = userLeave(socket.id)
@@ -104,16 +132,20 @@ io.on('connection', (socket) => {
 });
 
 function check_win(guess){
-    if(guess.includes("yellow") || guess.includes("grey")){
+    if(guess.includes("#FFFF66") || guess.includes("#484848")){
         return false;
     }else{
         return true;
     }
 }
 
+let letterArray = [];
+
 function check_answer(guess){
     var tileArray = [];
     var wordDict = {};
+    green_count = 0;
+    letterArray = [];
     //create a dictionary of the current word where the keys: characters, value: character count in word
     for (let i = 0; i < current_word.length; i++) {
         wordDict[current_word[i]] = (wordDict[current_word[i]] || 0) + 1;
@@ -123,6 +155,7 @@ function check_answer(guess){
         if(current_word[i]==guess[i]){
             tileArray[i]="green";
             wordDict[current_word[i]] = wordDict[current_word[i]]-1;
+            green_count++;
         }
     }
     //loop through and determine if there was a correct letter in the wrong location
@@ -130,12 +163,13 @@ function check_answer(guess){
     //["Grey", "Yellow", "Grey", "Grey", "Green"], note: one of the 'e's are grey because the correct word only contains 2 'e's
     for (let i = 0; i < guess.length; i++) {
         if(current_word.includes(guess[i]) && typeof tileArray[i] === 'undefined' && wordDict[guess[i]] != 0){
-            tileArray[i]="yellow";
+            tileArray[i]="#FFFF66";
             wordDict[guess[i]] = wordDict[guess[i]]-1;
         }
         else if(typeof tileArray[i] === 'undefined'){
-            tileArray[i]="grey";
+            tileArray[i]="#484848";
         }
+        letterArray[i] = guess[i];
     }
     return tileArray;
 }
