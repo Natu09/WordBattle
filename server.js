@@ -108,10 +108,10 @@ io.on('connection', (socket) => {
             green_count = 0;
             letterArray = [];
             // generate new word here
-
+            // update_current_word();
             io.to(user.room).emit('reset')
         } else {
-            console.log("Error an unknown user tried to restart the game in room: " + user.room)
+            console.log(`Error an unknown user tried to restart the game in room: ${user.room}`)
         }
     }) 
     // Runs when a client disconnects

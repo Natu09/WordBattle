@@ -58,22 +58,17 @@ socket.on('reset', () => {
   document.location.reload();
 })
 
-const closeModalButtons = document.querySelectorAll('[data-ok-button]')
-const overlay = document.getElementById('overlay')
+const closeModalButtons = document.querySelectorAll('[data-bs-dismiss]')
 
 socket.on('win', (user) => {
-  const modal = document.getElementById('winModal')
-  const div = document.createElement('div');
-  div.classList.add('modal-header')
-  div.innerHTML =  `<p><strong>${user.username}</strong> has won the game</p>`
-  modal.insertAdjacentElement('afterbegin' ,div)
-  openModal(modal)
+  const modal = document.getElementById('staticBackdropLabel')
+  modal.innerHTML = `<strong>${user.username}</strong> has won the game`
+  openModal()
 })
 
 closeModalButtons.forEach(button => {
   button.addEventListener('click', () => {
-    const modal = button.closest('.winModal')
-    closeModal(modal);
+    closeModal();
   })
 })
 
@@ -212,17 +207,12 @@ function shadeKeyboard(letter, color) {
 }
 
 
-function openModal(modal) {
-  if (modal == null) return
-  modal.classList.add('active')
-  overlay.classList.add('active')
+function openModal() {
+  startConfetti();
+  $("#staticBackdrop").modal('show');
 }
 
-function closeModal(modal) {
-  if (modal == null) return
-  modal.classList.remove('active')
-  overlay.classList.remove('active')
-
+function closeModal() {
   socket.emit('restart', socket.id)
 }
 

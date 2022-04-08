@@ -6,13 +6,13 @@
   --light-color: #e6e9ff;
   --success-color: #5cb85c;
   --error-color: #d9534f;
+  --animate-duration: 2s;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  --animate-duration: 2s;
 }
 
 html, body {
