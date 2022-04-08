@@ -17,6 +17,7 @@
 
 html, body {
   margin:0px;
+  padding-right: 0 !important;
   min-height:100vh;
   font-family: "Roboto", sans-serif;
   font-size: 16px;
@@ -247,8 +248,8 @@ li {
   border-radius: 10px;
   z-index: 10;
   background:rgb(58, 58, 60);
-  width: 250px;
-  max-width: 250px
+  /* width: 250px; */
+  /* max-width: 250px */
 }
 
 .winModal.active {
