@@ -113,7 +113,7 @@ for (let i = 0; i < keys.length; i++) {
       return;
     }
     else if(current_word.length>=5){
-      cust_alert("At max word length"+current_word.length);
+      cust_alert("At max word length");
     }
     else{
         if(!current_word && indexSet.has(index)) index--;

@@ -26,6 +26,10 @@ var current_users=[];
 var current_word = "coach";
 let word_list = [];
 
+var fs = require('fs');
+word_list = fs.readFileSync('words.txt').toString().split("\n");
+update_current_word();
+
 // Run when a client connects 
 io.on('connection', (socket) => {
     // checks username and room for availability 
@@ -76,6 +80,7 @@ io.on('connection', (socket) => {
                     green_count = 0;
                     user.wins++;
                     user_wins[user.username] = user.wins;
+                    update_current_word();
                     io.to(user.room).emit('win', user)
                 }
             }
@@ -175,7 +180,9 @@ function check_answer(guess){
 }
 
 function update_current_word(){
-    current_word = word_list.shift().toLowerCase();
+        let index = Math.floor( Math.random()*word_list.length );
+        current_word = word_list[index].toLowerCase();
+        word_list.splice( index, 1 );
 }
 
 const PORT = process.env.PORT || 3000;
