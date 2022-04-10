@@ -196,7 +196,7 @@ function shadeKeyboard(letter, color) {
               return
           } 
 
-          if (oldColor === '#FFFF66' && color !== 'green') {
+          if (oldColor === 'rgb(255, 255, 102)' && color !== 'green') {
               return
           }
 

@@ -1,8 +1,8 @@
 @import url("https://fonts.googleapis.com/css?family=Roboto&display=swap");
 
 :root {
-  --dark-color-a: #667aff;
-  --dark-color-b: #7386ff;
+  --dark-color-a: #3700B3;
+  --dark-color-b: #6200EE;
   --light-color: #e6e9ff;
   --success-color: #5cb85c;
   --error-color: #d9534f;
@@ -17,6 +17,7 @@
 
 html, body {
   margin:0px;
+  padding-right: 0 !important;
   min-height:100vh;
   font-family: "Roboto", sans-serif;
   font-size: 16px;
@@ -195,7 +196,7 @@ a {
 }
 
 .square_small {
-  border: 2px solid rgb(58, 58, 60);
+  border: 2px solid rgb(255, 255, 255);
   width: 30px;
   height: 30px;
   /* font-size: 15px; */
@@ -247,8 +248,8 @@ li {
   border-radius: 10px;
   z-index: 10;
   background:rgb(58, 58, 60);
-  width: 250px;
-  max-width: 250px
+  /* width: 250px; */
+  /* max-width: 250px */
 }
 
 .winModal.active {
