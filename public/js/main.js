@@ -181,7 +181,7 @@ function cust_alert(message){
 
 //Prompt the user before leave room
 document.getElementById('leave-btn').addEventListener('click', () => {
-  const leaveRoom = confirm('Are you sure you want to leave the game rooom?');
+  const leaveRoom = confirm('Are you sure you want to leave the game room?');
   if (leaveRoom) {
     window.location = '../index.html';
   } else {
