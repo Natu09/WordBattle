@@ -9,7 +9,7 @@ let { username, room } = Qs.parse(location.search, {
 
 const socket = io();
 
-// Join chatroom
+// Join gameroom
 socket.emit('joinRoom', { username, room });
 
 // Get room and users
@@ -179,9 +179,9 @@ function cust_alert(message){
     });
   }
 
-//Prompt the user before leave chat room
+//Prompt the user before leave room
 document.getElementById('leave-btn').addEventListener('click', () => {
-  const leaveRoom = confirm('Are you sure you want to leave the chatroom?');
+  const leaveRoom = confirm('Are you sure you want to leave the game rooom?');
   if (leaveRoom) {
     window.location = '../index.html';
   } else {
