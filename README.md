@@ -1,7 +1,9 @@
 # Word Battle
 
 Course: SENG 513 
+
 Semester: Winter 2022
+
 Group 24 Members: Nathaniel Habtegergesa, Kyle deBoer, Joshua Kim
 
 ## About
