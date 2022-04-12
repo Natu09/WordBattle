@@ -82,12 +82,10 @@ document.addEventListener("DOMContentLoaded", () => {
 let index = 0;
 let current_word = "";
 let indexSet = new Set([1,6,11,16,21,26]);
-//for-loop based on youtube video, I did the logic myself tho
-//so that it's not super similar to the youtube video lol
-//may want to delegate some of the logic to helper functions lol
+//handling of keyboard button presses influenced by the following youtube tutorial:
+//https://www.youtube.com/watch?v=j7OhcuZQ-q8&ab_channel=IanLenehan
 for (let i = 0; i < keys.length; i++) {
   keys[i].onclick = ({ target }) => {
-
     // initialize the class IDs to reference later
     //const bigSquareID = `bigSquare${index}`
     const letter = target.getAttribute("data-key");
@@ -127,7 +125,8 @@ for (let i = 0; i < keys.length; i++) {
     }
   };
 }
-
+//function to generate squares heavily influenced by the following youtube tutorial:
+//https://www.youtube.com/watch?v=j7OhcuZQ-q8&ab_channel=IanLenehan
 function createSquares() {
   console.log(username)
   const gameBoard = document.getElementById("board");
