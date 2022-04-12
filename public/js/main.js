@@ -1,3 +1,4 @@
+// inspired by: https://github.com/bradtraversy/chatcord
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
 const keys = document.querySelectorAll(".keyboard-row button");

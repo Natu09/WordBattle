@@ -1,3 +1,4 @@
+// inspired by: https://github.com/bradtraversy/chatcord
 const path = require('path');
 const http = require('http'); 
 const express = require('express');
